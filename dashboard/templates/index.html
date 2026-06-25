@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Content Agent Dashboard — @{{ my_profile.username }}</title>
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --surface: #111118;
+      --border: #1e1e2e;
+      --accent: #7c3aed;
+      --accent2: #06b6d4;
+      --green: #10b981;
+      --yellow: #f59e0b;
+      --red: #ef4444;
+      --text: #e2e8f0;
+      --muted: #64748b;
+      --card: #13131d;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: 'SF Mono', 'Fira Code', monospace; font-size: 13px; }
+
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 24px; border-bottom: 1px solid var(--border);
+      background: var(--surface);
+    }
+    .logo { font-size: 15px; font-weight: 700; color: var(--accent); letter-spacing: 0.05em; }
+    .logo span { color: var(--accent2); }
+    .status-bar { display: flex; gap: 20px; align-items: center; }
+    .pill {
+      padding: 3px 10px; border-radius: 99px; font-size: 11px; font-weight: 600;
+      border: 1px solid var(--border);
+    }
+    .pill.live { background: rgba(16,185,129,0.1); color: var(--green); border-color: var(--green); }
+    .pill.handle { background: rgba(124,58,237,0.1); color: var(--accent); border-color: var(--accent); }
+    .last-updated { color: var(--muted); font-size: 11px; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--border);
+      min-height: calc(100vh - 57px);
+    }
+    .agent-card {
+      background: var(--card);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .agent-card.wide { grid-column: span 2; }
+
+    .agent-header {
+      display: flex; align-items: center; gap: 10px;
+      padding-bottom: 12px; border-bottom: 1px solid var(--border);
+    }
+    .agent-icon {
+      width: 32px; height: 32px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px; flex-shrink: 0;
+    }
+    .agent-title { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+    .agent-status { margin-left: auto; font-size: 10px; color: var(--green); }
+    .agent-status::before { content: '● '; }
+
+    /* Analyst */
+    .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .stat-box {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 8px; padding: 12px;
+    }
+    .stat-label { color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+    .stat-value { font-size: 22px; font-weight: 700; color: var(--text); }
+    .stat-sub { font-size: 10px; color: var(--muted); margin-top: 2px; }
+
+    /* Competitor bar */
+    .comp-row { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+    .comp-name { color: var(--accent2); width: 130px; flex-shrink: 0; font-size: 12px; }
+    .bar-track { flex: 1; height: 6px; background: var(--border); border-radius: 3px; }
+    .bar-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--accent), var(--accent2)); }
+    .comp-num { color: var(--muted); font-size: 11px; width: 55px; text-align: right; }
+
+    /* Ideator */
+    .idea-item {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 6px;
+    }
+    .idea-source { color: var(--accent2); font-size: 10px; }
+    .idea-text { color: var(--text); line-height: 1.5; font-size: 12px; }
+    .idea-meta { color: var(--muted); font-size: 10px; }
+
+    /* Hook & Script */
+    .hook-item {
+      background: var(--surface); border-left: 3px solid var(--accent);
+      padding: 10px 12px; border-radius: 0 6px 6px 0;
+      color: var(--text); line-height: 1.5; font-size: 12px;
+    }
+
+    /* Planner */
+    .cal-row {
+      display: grid; grid-template-columns: 42px 90px 1fr;
+      gap: 10px; align-items: center;
+      padding: 8px 0; border-bottom: 1px solid var(--border);
+    }
+    .cal-row:last-child { border-bottom: none; }
+    .cal-day { color: var(--accent2); font-weight: 700; font-size: 11px; }
+    .cal-format {
+      font-size: 10px; padding: 2px 8px; border-radius: 4px;
+      background: rgba(124,58,237,0.15); color: var(--accent); border: 1px solid rgba(124,58,237,0.3);
+    }
+    .cal-topic { color: var(--muted); font-size: 12px; }
+
+    /* DM Manager */
+    .dm-item {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 6px;
+    }
+    .dm-trigger { color: var(--yellow); font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .dm-reply { color: var(--text); font-size: 12px; line-height: 1.5; font-style: italic; }
+
+    .section-label {
+      font-size: 10px; color: var(--muted); text-transform: uppercase;
+      letter-spacing: 0.08em; margin-bottom: 4px;
+    }
+
+    @media (max-width: 900px) {
+      .grid { grid-template-columns: 1fr; }
+      .agent-card.wide { grid-column: span 1; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">CONTENT<span>AGENT</span> OS</div>
+  <div class="status-bar">
+    <span class="pill handle">@{{ my_profile.username }}</span>
+    <span class="pill live">5 Agents Live</span>
+    <span class="last-updated">Last sync: {{ last_updated[:19].replace('T',' ') if last_updated and last_updated != 'Never' else 'Never' }} UTC</span>
+  </div>
+</header>
+
+<div class="grid">
+
+  <!-- ANALYST -->
+  <div class="agent-card wide">
+    <div class="agent-header">
+      <div class="agent-icon" style="background:rgba(16,185,129,0.1);">📊</div>
+      <div>
+        <div class="agent-title">Analyst</div>
+        <div style="color:var(--muted);font-size:10px;">Performance intelligence</div>
+      </div>
+      <div class="agent-status">Running</div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-box">
+        <div class="stat-label">Followers</div>
+        <div class="stat-value">{{ "{:,}".format(agents.analyst.followers) }}</div>
+        <div class="stat-sub">@{{ my_profile.username }}</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Total Posts</div>
+        <div class="stat-value">{{ agents.analyst.posts_count }}</div>
+        <div class="stat-sub">on record</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Avg Likes / Post</div>
+        <div class="stat-value">{{ agents.analyst.avg_likes }}</div>
+        <div class="stat-sub">last 12 posts</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Avg Views / Video</div>
+        <div class="stat-value">{{ agents.analyst.avg_views }}</div>
+        <div class="stat-sub">last 12 posts</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-label">Competitor followers</div>
+      {% set max_f = agents.analyst.top_competitor.followers if agents.analyst.top_competitor else 1 %}
+      {% for c in agents.analyst.top_competitor | list %}{% endfor %}
+      {% set all_comp = agents.analyst.top_competitor %}
+      <!-- render competitor bars -->
+      {% set profiles = [] %}
+      {% for item in agents.analyst | items %}{% endfor %}
+
+      {# We'll iterate competitor_profiles passed via agents #}
+      {% if agents.analyst.top_competitor %}
+      <div class="comp-row">
+        <span class="comp-name">@{{ agents.analyst.top_competitor.username }}</span>
+        <div class="bar-track"><div class="bar-fill" style="width:100%"></div></div>
+        <span class="comp-num">{{ "{:,}".format(agents.analyst.top_competitor.followers) }}</span>
+      </div>
+      {% endif %}
+      <div class="comp-row">
+        <span class="comp-name" style="color:var(--accent);">@{{ my_profile.username }}</span>
+        <div class="bar-track">
+          {% if agents.analyst.top_competitor and agents.analyst.top_competitor.followers > 0 %}
+          <div class="bar-fill" style="width:{{ [((agents.analyst.followers / agents.analyst.top_competitor.followers) * 100)|int, 100]|min }}%; background: var(--accent);"></div>
+          {% else %}
+          <div class="bar-fill" style="width:100%;background:var(--accent);"></div>
+          {% endif %}
+        </div>
+        <span class="comp-num">{{ "{:,}".format(agents.analyst.followers) }}</span>
+      </div>
+    </div>
+
+    {% if agents.analyst.best_post %}
+    <div>
+      <div class="section-label">Best recent post</div>
+      <div class="idea-item">
+        <div class="idea-source">{{ agents.analyst.best_post.type }} · {{ agents.analyst.best_post.timestamp[:10] if agents.analyst.best_post.timestamp else '' }}</div>
+        <div class="idea-text">{{ agents.analyst.best_post.caption[:180] }}…</div>
+        <div class="idea-meta">❤️ {{ agents.analyst.best_post.likes }} &nbsp; 💬 {{ agents.analyst.best_post.comments }} &nbsp; 👁 {{ agents.analyst.best_post.views }}</div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- IDEATOR -->
+  <div class="agent-card">
+    <div class="agent-header">
+      <div class="agent-icon" style="background:rgba(6,182,212,0.1);">💡</div>
+      <div>
+        <div class="agent-title">Ideator</div>
+        <div style="color:var(--muted);font-size:10px;">Trend & idea scout</div>
+      </div>
+      <div class="agent-status">Running</div>
+    </div>
+    <div class="section-label">Top competitor ideas to riff on</div>
+    {% for idea in agents.ideator.top_ideas %}
+    <div class="idea-item">
+      <div class="idea-source">{{ idea.source }}</div>
+      <div class="idea-text">{{ idea.hook }}</div>
+      <div class="idea-meta">❤️ {{ idea.likes }} &nbsp; 💬 {{ idea.comments }}</div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- HOOK & SCRIPT -->
+  <div class="agent-card">
+    <div class="agent-header">
+      <div class="agent-icon" style="background:rgba(124,58,237,0.1);">✍️</div>
+      <div>
+        <div class="agent-title">Hook & Script</div>
+        <div style="color:var(--muted);font-size:10px;">Copy & format strategy</div>
+      </div>
+      <div class="agent-status">Running</div>
+    </div>
+    <div class="section-label">Best format for your audience</div>
+    <div style="font-size:18px;font-weight:700;color:var(--accent);margin-bottom:4px;">{{ agents.hook_script.best_type }}</div>
+    <div style="color:var(--muted);font-size:11px;margin-bottom:12px;">gets your highest engagement</div>
+
+    <div class="section-label">Format breakdown</div>
+    {% for type, stats in agents.hook_script.type_stats.items() %}
+    <div class="comp-row">
+      <span class="comp-name" style="color:var(--text);">{{ type }}</span>
+      <div class="bar-track">
+        <div class="bar-fill" style="width:{{ [stats.likes * 10, 100]|min }}%;"></div>
+      </div>
+      <span class="comp-num">{{ stats.likes }}❤️</span>
+    </div>
+    {% endfor %}
+
+    <div class="section-label" style="margin-top:8px;">Hook suggestions</div>
+    {% for s in agents.hook_script.suggestions %}
+    <div class="hook-item">{{ s }}</div>
+    {% endfor %}
+  </div>
+
+  <!-- PLANNER -->
+  <div class="agent-card">
+    <div class="agent-header">
+      <div class="agent-icon" style="background:rgba(245,158,11,0.1);">🗓</div>
+      <div>
+        <div class="agent-title">Planner</div>
+        <div style="color:var(--muted);font-size:10px;">Weekly content calendar</div>
+      </div>
+      <div class="agent-status">Running</div>
+    </div>
+    <div class="section-label">This week's plan</div>
+    {% for day in agents.planner.calendar %}
+    <div class="cal-row">
+      <span class="cal-day">{{ day.day }}</span>
+      <span class="cal-format">{{ day.format }}</span>
+      <span class="cal-topic">{{ day.topic }}</span>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- DM MANAGER -->
+  <div class="agent-card wide">
+    <div class="agent-header">
+      <div class="agent-icon" style="background:rgba(239,68,68,0.1);">💬</div>
+      <div>
+        <div class="agent-title">DM Manager</div>
+        <div style="color:var(--muted);font-size:10px;">Response playbook</div>
+      </div>
+      <div class="agent-status">Running</div>
+    </div>
+    <div class="section-label">Auto-reply templates</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
+      {% for dm in agents.dm_manager.templates %}
+      <div class="dm-item">
+        <div class="dm-trigger">⚡ {{ dm.trigger }}</div>
+        <div class="dm-reply">"{{ dm.reply }}"</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
