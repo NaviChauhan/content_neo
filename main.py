@@ -43,9 +43,11 @@ def job_report():
 
 def boot_fetch():
     """Fetch data on startup if data.json is empty or has no profile."""
+    print("🔍 boot_fetch: checking for existing data...")
     try:
         data = json.loads(DATA_PATH.read_text()) if DATA_PATH.exists() else {}
-    except Exception:
+    except Exception as e:
+        print(f"⚠️  boot_fetch: could not read data.json ({e}) — will fetch fresh")
         data = {}
 
     if not data.get("my_profile", {}).get("username"):

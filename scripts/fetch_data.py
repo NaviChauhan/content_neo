@@ -123,6 +123,7 @@ def main():
         "competitor_posts": competitor_posts,
     }
 
+    DATA_PATH.parent.mkdir(parents=True, exist_ok=True)
     DATA_PATH.write_text(json.dumps(data, indent=2, ensure_ascii=False))
     print(f"\n✅ Data saved to {DATA_PATH}")
     print(f"   Your posts      : {len(my_posts)}")

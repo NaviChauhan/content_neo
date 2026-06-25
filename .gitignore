@@ -2,5 +2,6 @@
 __pycache__/
 *.pyc
 dashboard/data/data.json
+!dashboard/data/.gitkeep
 .DS_Store
 venv/
