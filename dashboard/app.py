@@ -129,5 +129,18 @@ def api_data():
     return jsonify({"agents": agents, "profile": data.get("my_profile", {}), "last_updated": data.get("last_updated")})
 
 
+@app.route("/refresh")
+def refresh():
+    import threading
+    import sys
+    import os
+    sys.path.insert(0, str(Path(__file__).parent.parent))
+    import scripts.fetch_data as fetcher
+    def run():
+        fetcher.main()
+    threading.Thread(target=run).start()
+    return "Fetching data in background... check back in 2 minutes.", 202
+
+
 if __name__ == "__main__":
     app.run(debug=True, port=5050)
